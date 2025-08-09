@@ -1,0 +1,38 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4  # ✅ تحديث النسخة
+
+      - name: Set up Python
+        uses: actions/setup-python@v5  # ✅ تحديث النسخة
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip python3-setuptools python3-wheel python3-venv \
+                              git zip unzip openjdk-17-jdk libffi-dev libssl-dev \
+                              autoconf libtool pkg-config zlib1g-dev \
+                              libltdl-dev python3-dev
+          pip install --upgrade pip
+          pip install buildozer Cython
+
+      - name: Build APK
+        run: |
+          buildozer init || true
+          buildozer -v android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4  # ✅ تحديث النسخة
+        with:
+          name: WebScanner-APK
+          path: bin/*.apk
