@@ -1,4 +1,4 @@
-name: Build APK
+٠name: Build APK
 
 on:
   workflow_dispatch:
@@ -9,10 +9,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # ✅ تحديث النسخة
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5  # ✅ تحديث النسخة
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -26,13 +26,29 @@ jobs:
           pip install --upgrade pip
           pip install buildozer Cython
 
+      - name: Install Android SDK & Build Tools
+        run: |
+          mkdir -p $HOME/android-sdk
+          cd $HOME/android-sdk
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip commandlinetools-linux-11076708_latest.zip -d cmdline-tools
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/* cmdline-tools/latest/
+          yes | cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk --licenses
+          cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk \
+            "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
+          export ANDROIDSDK=$HOME/android-sdk
+          export PATH=$ANDROIDSDK/platform-tools:$PATH
+          export PATH=$ANDROIDSDK/build-tools/33.0.2:$PATH
+
       - name: Build APK
         run: |
           buildozer init || true
           buildozer -v android debug
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4  # ✅ تحديث النسخة
+        uses: actions/upload-artifact@v4
         with:
           name: WebScanner-APK
           path: bin/*.apk
